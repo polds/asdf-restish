@@ -2,7 +2,6 @@
 
 set -euo pipefail
 
-# TODO: Ensure this is the correct GitHub homepage where releases can be downloaded for restish.
 GH_REPO="https://github.com/danielgtaylor/restish"
 TOOL_NAME="restish"
 TOOL_TEST="restish --version"
@@ -31,8 +30,6 @@ list_github_tags() {
 }
 
 list_all_versions() {
-	# TODO: Adapt this. By default we simply list the tag names from GitHub releases.
-	# Change this function if restish has other means of determining installable versions.
 	list_github_tags
 }
 
@@ -41,8 +38,7 @@ download_release() {
 	version="$1"
 	filename="$2"
 
-	# TODO: Adapt the release URL convention for restish
-	url="$GH_REPO/archive/v${version}.tar.gz"
+	url="$GH_REPO/releases/download/v${version}/${TOOL_NAME}-${version}-$(get_platform)-$(get_arch).tar.gz"
 
 	echo "* Downloading $TOOL_NAME release $version..."
 	curl "${curl_opts[@]}" -o "$filename" -C - "$url" || fail "Could not download $url"
@@ -61,7 +57,6 @@ install_version() {
 		mkdir -p "$install_path"
 		cp -r "$ASDF_DOWNLOAD_PATH"/* "$install_path"
 
-		# TODO: Assert restish executable exists.
 		local tool_cmd
 		tool_cmd="$(echo "$TOOL_TEST" | cut -d' ' -f1)"
 		test -x "$install_path/$tool_cmd" || fail "Expected $install_path/$tool_cmd to be executable."
@@ -71,4 +66,39 @@ install_version() {
 		rm -rf "$install_path"
 		fail "An error occurred while installing $TOOL_NAME $version."
 	)
+}
+
+get_platform() {
+	local platform
+	platform=$(uname -s | tr '[:upper:]' '[:lower:]')
+	case $platform in
+	"darwin")
+		echo "Darwin"
+		;;
+	*)
+		echo "$platform"
+		;;
+	esac
+}
+
+get_arch() {
+	local arch
+	arch=$(uname -m)
+	case $arch in
+	"x86_64")
+		echo "amd64"
+		;;
+	"arm")
+		echo "armv7" # Super best effort - TODO: find useful way to split armv6/armv7 maybe
+		;;
+	"aarch64" | "arm64")
+		echo "arm64"
+		;;
+	"i686")
+		echo "i386"
+		;;
+	*)
+		echo "$arch"
+		;;
+	esac
 }
