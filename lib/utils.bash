@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-GH_REPO="https://github.com/danielgtaylor/restish"
+GH_REPO="https://github.com/rest-sh/restish"
 TOOL_NAME="restish"
 TOOL_TEST="restish --version"
 
